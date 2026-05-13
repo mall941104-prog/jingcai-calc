@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>竞彩奖金计算器 - 专业版</title>
+    <!-- 微信分享卡片优化 -->
+    <meta property="og:title" content="竞彩奖金计算器">
+    <meta property="og:description" content="专业竞彩串关奖金计算工具，支持自由过关与M串N">
+    <meta property="og:image" content="https://placehold.co/300x300/2196F3/FFFFFF?text=%E7%AB%9E%E5%BD%A9%E8%AE%A1%E7%AE%97%E5%99%A8">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+        :root {
+            --primary: #2196F3;
+            --success: #4CAF50;
+            --danger: #f44336;
+            --warning: #FF9800;
+            --background: #f5f6f8;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--background);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .app-header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .app-header p {
+            margin: 6px 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .container {
+            padding: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .match-card {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            margin: 10px 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .match-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+        }
+        .match-remove {
+            color: var(--danger);
+            font-size: 13px;
+            background: none;
+            border: none;
+            padding: 4px 8px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            margin: 6px 0;
+            background: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .option-label {
+            font-size: 14px;
+            color: #555;
+            min-width: 48px;
+        }
+        .option-odds {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .option-odds:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .correct-wrap {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .correct-wrap label {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .correct-radio {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--success);
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 18px;
+            padding: 4px;
+            color: #999;
+        }
+
+        .match-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-ghost { background: #e8eaf6; color: var(--primary); }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 10px 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .combo-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .combo-chip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .combo-chip.active {
+            background: #e3f2fd;
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .combo-chip input { display: none; }
+
+        .msn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .msn-chip {
+            padding: 8px;
+            background: #fff3e0;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            color: #e65100;
+        }
+        .msn-chip.active {
+            border-color: var(--warning);
+            background: #ffe0b2;
+            font-weight: 600;
+        }
+
+        .multiple-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .multiple-row input {
+            width: 80px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .results-panel {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .result-row:last-child { border-bottom: none; }
+        .result-label { font-size: 14px; opacity: 0.85; }
+        .result-value { font-size: 18px; font-weight: 700; }
+        .result-value.primary { color: #64b5f6; }
+        .result-value.success { color: #81c784; }
+        .result-value.gold { color: #ffd54f; }
+
+        .action-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 12px 0;
+        }
+        .action-bar .btn { padding: 14px; font-size: 15px; }
+
+        .fab-add {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(33,150,243,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        /* 分享弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 360px;
+            overflow: hidden;
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+        }
+        .modal-body { padding: 16px; }
+        .poster-canvas-wrap {
+            background: #f5f5f5;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .poster-canvas-wrap canvas { display: block; width: 100%; height: auto; }
+        .share-tip {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px; right: 12px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 12px; opacity: 0.4; }
+
+        @media (max-width: 380px) {
+            .combo-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1>竞彩奖金计算器</h1>
+        <p>专业串关计算 · 奖金一目了然</p>
+    </div>
+
+    <div class="container">
+        <div id="matches-container"></div>
+
+        <div class="section">
+            <div class="section-title">串关设置</div>
+            <div class="combo-grid" id="combo-container"></div>
+
+            <div class="section-title" style="margin-top:16px">快速M串N</div>
+            <div class="msn-grid" id="msn-container"></div>
+
+            <div class="multiple-row">
+                <span>投注倍数</span>
+                <input type="number" id="multiple" value="1" min="1" step="1" oninput="calculate()">
+            </div>
+        </div>
+
+        <div class="results-panel" id="results-panel">
+            <div class="result-row">
+                <span class="result-label">总注数</span>
+                <span class="result-value primary" id="totalBets">0 注</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">投注金额</span>
+                <span class="result-value" id="totalAmount">¥0.00</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">中奖注数</span>
+                <span class="result-value success" id="winningBets">0 注</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">预计奖金（税前）</span>
+                <span class="result-value gold" id="winningAmount">¥0.00</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">预计奖金（税后）</span>
+                <span class="result-value gold" id="winningAmountAfterTax">¥0.00</span>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button class="btn btn-ghost" onclick="saveData()">💾 保存</button>
+            <button class="btn btn-ghost" onclick="loadData()">📂 读取</button>
+            <button class="btn btn-warning" onclick="generatePoster()">📤 生成海报</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ 清空</button>
+        </div>
+
+        <div style="height: 80px;"></div>
+    </div>
+
+    <button class="fab-add" onclick="addMatch()">+</button>
+
+    <!-- 分享海报弹窗 -->
+    <div class="modal-overlay" id="posterModal" onclick="closePoster(event)">
+        <div style="position: relative;">
+            <button class="modal-close" onclick="closePoster()">&times;</button>
+            <div class="modal-box">
+                <div class="modal-header">长按保存海报分享</div>
+                <div class="modal-body">
+                    <div class="poster-canvas-wrap">
+                        <canvas id="posterCanvas" width="720" height="960"></canvas>
+                    </div>
+                    <div class="share-tip">长按上方图片 → 保存到手机 → 发送给朋友</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+let matchCounter = 0;
+let comboStates = {};
+
+const MSN_PRESETS = {
+    '3,3': [2],
+    '3,4': [2,3],
+    '4,6': [2],
+    '4,11': [2,3,4],
+    '5,10': [2],
+    '5,26': [2,3,4,5],
+    '6,15': [2],
+    '6,57': [2,3,4,5,6],
+    '8,120': [2,3,4,5,6,7,8]
+};
+
+function init() {
+    const saved = localStorage.getItem('jisuanqi_mobile_data');
+    if (saved) {
+        loadData();
+    } else {
+        addMatch();
+    }
+}
+
+function updateComboOptions() {
+    const matchCount = document.querySelectorAll('.match-card').length;
+    const maxCombo = Math.min(matchCount, 8);
+    const container = document.getElementById('combo-container');
+
+    Object.keys(comboStates).forEach(k => {
+        if (parseInt(k) > maxCombo) delete comboStates[k];
+    });
+
+    let html = '';
+    if (maxCombo >= 1) {
+        for (let k = 1; k <= maxCombo; k++) {
+            const active = comboStates[k] ? 'active' : '';
+            html += `
+                <label class="combo-chip ${active}" onclick="toggleCombo(this,${k})">
+                    <input type="checkbox" ${comboStates[k]?'checked':''}>
+                    ${k}串1
+                </label>
+            `;
+        }
+    }
+    container.innerHTML = html || '<span style="color:#999;grid-column:1/-1;text-align:center;padding:10px">请添加至少1场比赛</span>';
+    updateMsnState();
+}
+
+function updateMsnState() {
+    const msnContainer = document.getElementById('msn-container');
+    const activeCombos = Object.keys(comboStates).map(Number);
+    let html = '';
+    Object.entries(MSN_PRESETS).forEach(([key, combos]) => {
+        const isActive = combos.every(k => activeCombos.includes(k));
+        const activeClass = isActive ? 'active' : '';
+        const label = key.replace(',', '串');
+        html += `<div class="msn-chip ${activeClass}" onclick="toggleMsn('${key}',this)">${label}</div>`;
+    });
+    msnContainer.innerHTML = html;
+}
+
+function toggleCombo(el, k) {
+    const input = el.querySelector('input');
+    input.checked = !input.checked;
+    if (input.checked) {
+        comboStates[k] = true;
+        el.classList.add('active');
+    } else {
+        delete comboStates[k];
+        el.classList.remove('active');
+    }
+    updateMsnState();
+    calculate();
+}
+
+function toggleMsn(key, el) {
+    const combos = MSN_PRESETS[key];
+    if (!combos) return;
+    const allActive = combos.every(k => comboStates[k]);
+    if (allActive) {
+        combos.forEach(k => delete comboStates[k]);
+    } else {
+        combos.forEach(k => { comboStates[k] = true; });
+    }
+    updateComboOptions();
+    calculate();
+}
+
+function addMatch() {
+    matchCounter++;
+    const matchCard = document.createElement('div');
+    matchCard.className = 'match-card';
+    matchCard.dataset.matchId = matchCounter;
+    matchCard.innerHTML = `
+        <div class="match-header">
+            <span class="match-title">比赛 #${matchCounter}</span>
+            <button class="match-remove" onclick="removeMatch(${matchCounter})">删除</button>
+        </div>
+        <div class="options-list">
+            <div class="option-item">
+                <span class="option-label">选项1</span>
+                <input type="number" class="option-odds" value="1.80" step="0.01" min="1.01"
+                       oninput="calculate()">
+                <div class="correct-wrap">
+                    <label>
+                        <input type="radio" name="correct-${matchCounter}" class="correct-radio"
+                               onchange="calculate()">
+                        中
+                    </label>
+                    <button class="btn-icon" onclick="removeOption(this)">&times;</button>
+                </div>
+            </div>
+        </div>
+        <div class="match-actions">
+            <button class="btn btn-ghost" onclick="addOption(${matchCounter})">+ 添加选项</button>
+            <button class="btn btn-primary" onclick="addMatch()">+ 添加比赛</button>
+        </div>
+    `;
+    document.getElementById('matches-container').appendChild(matchCard);
+    updateComboOptions();
+    calculate();
+}
+
+function addOption(matchId) {
+    const match = document.querySelector(`.match-card[data-match-id="${matchId}"]`);
+    const optionCount = match.querySelectorAll('.option-item').length + 1;
+    const newOption = document.createElement('div');
+    newOption.className = 'option-item';
+    newOption.innerHTML = `
+        <span class="option-label">选项${optionCount}</span>
+        <input type="number" class="option-odds" value="1.80" step="0.01" min="1.01"
+               oninput="calculate()">
+        <div class="correct-wrap">
+            <label>
+                <input type="radio" name="correct-${matchId}" class="correct-radio"
+                       onchange="calculate()">
+                中
+            </label>
+            <button class="btn-icon" onclick="removeOption(this)">&times;</button>
+        </div>
+    `;
+    match.querySelector('.options-list').appendChild(newOption);
+    calculate();
+}
+
+function removeOption(btn) {
+    const optionItem = btn.closest('.option-item');
+    const optionsList = optionItem.closest('.options-list');
+    if (optionsList.querySelectorAll('.option-item').length <= 1) {
+        alert('每场比赛至少保留一个选项');
+        return;
+    }
+    optionItem.remove();
+    calculate();
+}
+
+function removeMatch(id) {
+    const card = document.querySelector(`.match-card[data-match-id="${id}"]`);
+    if (card) {
+        card.remove();
+        updateComboOptions();
+        calculate();
+    }
+}
+
+function clearAll() {
+    if (!confirm('确定清空所有数据？')) return;
+    document.getElementById('matches-container').innerHTML = '';
+    matchCounter = 0;
+    comboStates = {};
+    document.getElementById('multiple').value = 1;
+    addMatch();
+}
+
+function calculate() {
+    const matches = getMatchesData();
+    const combos = Object.keys(comboStates)
+                     .filter(k => comboStates[k])
+                     .map(Number)
+                     .sort((a,b) => a - b);
+    const multiple = parseInt(document.getElementById('multiple').value) || 1;
+
+    let totalBets = 0;
+    combos.forEach(k => {
+        const matchCombinations = getCombinations(matches, k);
+        matchCombinations.forEach(combo => {
+            totalBets += combo.reduce((acc, match) => acc * match.options.length, 1);
+        });
+    });
+
+    let winningBets = 0;
+    let winningAmount = 0;
+
+    combos.forEach(k => {
+        const validMatches = matches.filter(m => m.options.some(o => o.correct));
+        const validCombinations = getCombinations(validMatches, k);
+
+        validCombinations.forEach(combo => {
+            const oddsCombinations = combo.map(match =>
+                match.options.filter(o => o.correct).map(o => o.odds)
+            );
+            const productSum = cartesianProduct(oddsCombinations)
+                .reduce((sum, combo) => sum + combo.reduce((p, o) => p * o, 1), 0);
+
+            winningBets += oddsCombinations.reduce((a,b)=>a*b.length, 1);
+            winningAmount += productSum;
+        });
+    });
+
+    const baseUnit = 2;
+    const totalAmount = totalBets * baseUnit * multiple;
+    const winningAmountTotal = winningAmount * baseUnit * multiple;
+    let afterTax = winningAmountTotal;
+    if (winningAmountTotal > 10000) {
+        afterTax = winningAmountTotal * 0.8;
+    }
+
+    document.getElementById('totalBets').textContent = totalBets + ' 注';
+    document.getElementById('totalAmount').textContent = '¥' + totalAmount.toFixed(2);
+    document.getElementById('winningBets').textContent = winningBets + ' 注';
+    document.getElementById('winningAmount').textContent = '¥' + winningAmountTotal.toFixed(2);
+    document.getElementById('winningAmountAfterTax').textContent = '¥' + afterTax.toFixed(2);
+}
+
+function getMatchesData() {
+    return Array.from(document.querySelectorAll('.match-card')).map(match => ({
+        options: Array.from(match.querySelectorAll('.option-item')).map(option => ({
+            odds: parseFloat(option.querySelector('.option-odds').value) || 0,
+            correct: option.querySelector('.correct-radio').checked
+        }))
+    }));
+}
+
+function getCombinations(arr, k) {
+    const res = [];
+    const backtrack = (start, path) => {
+        if (path.length === k) return res.push([...path]);
+        for (let i = start; i < arr.length; i++) {
+            path.push(arr[i]);
+            backtrack(i + 1, path);
+            path.pop();
+        }
+    };
+    backtrack(0, []);
+    return res;
+}
+
+function cartesianProduct(arrays) {
+    return arrays.reduce((acc, arr) =>
+        acc.flatMap(c => arr.map(n => [...c, n])),
+        [[]]
+    );
+}
+
+function saveData() {
+    const data = {
+        matches: getMatchesData(),
+        comboStates, multiple: document.getElementById('multiple').value, matchCounter
+    };
+    localStorage.setItem('jisuanqi_mobile_data', JSON.stringify(data));
+    alert('已保存');
+}
+
+function loadData() {
+    const saved = localStorage.getItem('jisuanqi_mobile_data');
+    if (!saved) { alert('无保存数据'); return; }
+    const data = JSON.parse(saved);
+    document.getElementById('matches-container').innerHTML = '';
+    comboStates = data.comboStates || {};
+    document.getElementById('multiple').value = data.multiple || 1;
+    matchCounter = 0;
+    (data.matches || []).forEach(match => {
+        matchCounter++;
+        const matchCard = document.createElement('div');
+        matchCard.className = 'match-card';
+        matchCard.dataset.matchId = matchCounter;
+        let optionsHtml = '';
+        match.options.forEach((opt, oIdx) => {
+            optionsHtml += `
+                <div class="option-item">
+                    <span class="option-label">选项${oIdx+1}</span>
+                    <input type="number" class="option-odds" value="${opt.odds}" step="0.01" min="1.01" oninput="calculate()">
+                    <div class="correct-wrap">
+                        <label><input type="radio" name="correct-${matchCounter}" class="correct-radio" ${opt.correct?'checked':''} onchange="calculate()">中</label>
+                        <button class="btn-icon" onclick="removeOption(this)">&times;</button>
+                    </div>
+                </div>`;
+        });
+        matchCard.innerHTML = `
+            <div class="match-header"><span class="match-title">比赛 #${matchCounter}</span><button class="match-remove" onclick="removeMatch(${matchCounter})">删除</button></div>
+            <div class="options-list">${optionsHtml}</div>
+            <div class="match-actions">
+                <button class="btn btn-ghost" onclick="addOption(${matchCounter})">+ 添加选项</button>
+                <button class="btn btn-primary" onclick="addMatch()">+ 添加比赛</button>
+            </div>`;
+        document.getElementById('matches-container').appendChild(matchCard);
+    });
+    updateComboOptions();
+    calculate();
+}
+
+/* ==================== 海报生成 ==================== */
+function generatePoster() {
+    const canvas = document.getElementById('posterCanvas');
+    const ctx = canvas.getContext('2d');
+    const matches = getMatchesData();
+    const combos = Object.keys(comboStates).filter(k => comboStates[k]).map(Number).sort((a,b)=>a-b);
+    const multiple = parseInt(document.getElementById('multiple').value) || 1;
+
+    // 计算数据
+    let totalBets = 0, winningBets = 0, winningAmount = 0;
+    combos.forEach(k => {
+        const matchCombinations = getCombinations(matches, k);
+        matchCombinations.forEach(combo => {
+            totalBets += combo.reduce((acc, m) => acc * m.options.length, 1);
+        });
+        const validMatches = matches.filter(m => m.options.some(o => o.correct));
+        getCombinations(validMatches, k).forEach(combo => {
+            const oddsCombinations = combo.map(m => m.options.filter(o => o.correct).map(o => o.odds));
+            const productSum = cartesianProduct(oddsCombinations)
+                .reduce((sum, c) => sum + c.reduce((p, o) => p * o, 1), 0);
+            winningBets += oddsCombinations.reduce((a,b)=>a*b.length, 1);
+            winningAmount += productSum;
+        });
+    });
+    const totalAmount = totalBets * 2 * multiple;
+    const preTax = winningAmount * 2 * multiple;
+    const afterTax = preTax > 10000 ? preTax * 0.8 : preTax;
+
+    // 绘制背景
+    const grd = ctx.createLinearGradient(0, 0, 720, 960);
+    grd.addColorStop(0, '#1a1a2e');
+    grd.addColorStop(1, '#16213e');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 720, 960);
+
+    // 标题
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 42px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('竞彩奖金计算单', 360, 80);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '24px sans-serif';
+    ctx.fillText(new Date().toLocaleString('zh-CN'), 360, 120);
+
+    // 分隔线
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(60, 145);
+    ctx.lineTo(660, 145);
+    ctx.stroke();
+
+    // 比赛列表
+    let y = 190;
+    ctx.textAlign = 'left';
+    matches.forEach((match, idx) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.fillText(`比赛 ${idx + 1}`, 60, y);
+        y += 40;
+
+        match.options.forEach(opt => {
+            const color = opt.correct ? '#81c784' : 'rgba(255,255,255,0.6)';
+            const mark = opt.correct ? ' ✓' : '';
+            ctx.fillStyle = color;
+            ctx.font = '24px sans-serif';
+            ctx.fillText(`  赔率 ${opt.odds.toFixed(2)}${mark}`, 60, y);
+            y += 38;
+        });
+        y += 10;
+    });
+
+    // 分隔线
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(60, y);
+    ctx.lineTo(660, y);
+    ctx.stroke();
+    y += 40;
+
+    // 串关信息
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = '24px sans-serif';
+    const comboStr = combos.length > 0 ? combos.map(k => k + '串1').join('、') : '未选择';
+    ctx.fillText(`串关方式：${comboStr}`, 60, y);
+    y += 40;
+    ctx.fillText(`投注倍数：${multiple} 倍`, 60, y);
+    y += 50;
+
+    // 金额区
+    const drawLine = (label, value, color, isBold) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '26px sans-serif';
+        ctx.fillText(label, 60, y);
+        ctx.fillStyle = color;
+        ctx.font = (isBold ? 'bold ' : '') + '30px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(value, 660, y);
+        ctx.textAlign = 'left';
+        y += 50;
+    };
+
+    drawLine('总注数', totalBets + ' 注', '#64b5f6', false);
+    drawLine('投注金额', '¥' + totalAmount.toFixed(2), '#fff', false);
+    drawLine('中奖注数', winningBets + ' 注', '#81c784', false);
+    drawLine('预计奖金（税前）', '¥' + preTax.toFixed(2), '#ffd54f', true);
+    drawLine('预计奖金（税后）', '¥' + afterTax.toFixed(2), '#ffd54f', true);
+
+    // 底部提示
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('* 单注奖金超过10,000元需缴纳20%偶然所得税', 360, 910);
+    ctx.fillText('本计算结果仅供参考，以实际出票为准', 360, 940);
+
+    // 显示弹窗
+    document.getElementById('posterModal').classList.add('show');
+}
+
+function closePoster(e) {
+    if (!e || e.target.id === 'posterModal') {
+        document.getElementById('posterModal').classList.remove('show');
+    }
+}
+
+init();
+</script>
+</body>
+</html>
